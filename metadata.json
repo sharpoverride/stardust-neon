@@ -1,0 +1,5 @@
+{
+  "name": "Stardust Neon: Vector Vanguard",
+  "description": "A high-performance vector-based rail shooter inspired by FUR Squadron and Star Fox. Features a custom pseudo-3D rendering pipeline, additive blending lighting engine, and Gemini-powered mission generation.",
+  "requestFramePermissions": []
+}
