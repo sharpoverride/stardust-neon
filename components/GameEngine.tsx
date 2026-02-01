@@ -20,7 +20,8 @@ const FLOOR_Y = -6;
 const SHIP_LAG = 0.08; // Factor for ship following reticle (Physics weight)
 const RETICLE_LAG = 0.15; // Factor for Big Square following Small Dot (HUD weight)
 const AIM_DISTANCE = 400; // Aiming plane distance
-const SHIP_MARGIN = 5; // World units to keep ship from clipping edge
+const SHIP_MARGIN = 6; // World units to keep ship from clipping edge
+const SHIP_VISUAL_OFFSET_Y = 3.5; // Offset to keep ship below reticle for visibility
 
 const GameEngineComponent: React.FC<GameEngineProps> = ({ mission, onGameOver, onScoreUpdate, onHealthUpdate, width, height, paused }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -158,9 +159,13 @@ const GameEngineComponent: React.FC<GameEngineProps> = ({ mission, onGameOver, o
     // We use Z=0 so the mouse position maps directly to the ship's plane
     const moveTargetPos = unprojectVector(inputRef.current.x, inputRef.current.y, 0, width, height);
 
+    // Apply visual offset so ship stays below the crosshair
+    // This decouples the ship body from the aiming point for better visibility
+    const targetYRaw = moveTargetPos.y - SHIP_VISUAL_OFFSET_Y;
+
     // Clamp ship target to calculated screen bounds
     const targetX = Math.max(-xLimit, Math.min(xLimit, moveTargetPos.x));
-    const targetY = Math.max(FLOOR_Y + 1, Math.min(yMax, moveTargetPos.y));
+    const targetY = Math.max(FLOOR_Y + 1, Math.min(yMax, targetYRaw));
 
     // Lerp Ship towards clamped target
     const lerpFactor = SHIP_LAG;
@@ -186,6 +191,7 @@ const GameEngineComponent: React.FC<GameEngineProps> = ({ mission, onGameOver, o
     const isFiring = keysRef.current['Space'] || keysRef.current['Enter'] || true; 
     if (isFiring && timeNow() - lastFireTimeRef.current > FIRE_RATE) {
         // Aiming Logic: Fires EXACTLY towards the 3D point corresponding to the mouse cursor at AIM_DISTANCE
+        // Note: The ship is visually lower, so the bullet will travel "up" to meet the crosshair.
         const aimPos = unprojectVector(inputRef.current.x, inputRef.current.y, AIM_DISTANCE, width, height);
         
         spawnProjectile(player.position, aimPos, true);
